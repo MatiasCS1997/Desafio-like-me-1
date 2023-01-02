@@ -19,3 +19,33 @@ app.get("/posts", async (req, res) => {
   const posts = await getPosts();
   res.json(posts);
 });
+
+app.post("/posts", async (req, res) => {
+  try {
+    const { titulo, url, descripcion } = req.body;
+    await addPost(titulo, url, descripcion);
+    res.send("Su post ha sido agregado con éxito");
+  } catch (error) {
+    res.status(500).send(error);
+  }
+});
+
+app.put("/posts/like/:id", async (req, res) => {
+  const { id } = req.params;
+  try {
+    await addLike(id);
+    res.send("Su like ha sido agregado con éxito");
+  } catch (error) {
+    res.status(500).send("Error, su like no pudo ser agregado.");
+  }
+});
+
+app.delete("/posts/:id", async (req, res) => {
+  const { id } = req.params;
+  await deletePost(id);
+  res.send("Post eliminado con éxito");
+});
+
+app.get("/", (req, res) => {
+  res.sendFile(__dirname + "/index.html");
+});
