@@ -13,7 +13,7 @@ app.use(cors());
 
 app.use(express.static("public"));
 
-app.listen(3000, console.log("¡Servidor encendido!"));
+app.listen(3000, console.log("Servidor encendido"));
 
 app.get("/posts", async (req, res) => {
   const posts = await getPosts();
@@ -34,7 +34,7 @@ app.put("/posts/like/:id", async (req, res) => {
   const { id } = req.params;
   try {
     await addLike(id);
-    res.send("Su like ha sido agregado con éxito");
+    res.send("¡Like agregado con éxito!");
   } catch (error) {
     res.status(500).send("Error, su like no pudo ser agregado.");
   }

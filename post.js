@@ -1,19 +1,18 @@
-const { Client } = require("pg");
+const { Pool } = require("pg");
 
-const connectionData = {
-  host: "localhost",
+const pool = new Pool({
+  host: process.env.HOST,
   user: "postgres",
-  database: "likeme",
   password: "44182",
-  port: 5433,
-};
-const clientDB = new Client(connectionData);
+  database: "like_me",
+  allowExitOnIdle: true,
+});
 
 const addPost = async (titulo, url, descripcion) => {
   const query = "INSERT INTO posts VALUES (DEFAULT, $1, $2, $3, 0)";
   const values = [titulo, url, descripcion];
   const result = await pool.query(query, values);
-  console.log(" Tu post ha sido agregado");
+  console.log("Tu post ha sido agregado");
 };
 
 const getPosts = async () => {
@@ -35,5 +34,3 @@ const deletePost = async (id) => {
 };
 
 module.exports = { addPost, getPosts, addLike, deletePost };
-
-
