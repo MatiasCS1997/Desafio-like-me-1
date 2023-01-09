@@ -1,51 +1,70 @@
-const { addPost, getPosts, addLike, deletePost } = require("./post");
-
 const express = require("express");
 const app = express();
-const fs = require("fs");
 const cors = require("cors");
+const { getPost, addPost, deletePost, addLike } = require("./post");
 
-require("dotenv").config({ path: "./.env" });
+const CsbInspector = require("Csb-Inspector");
+CsbInspector();
+
+require("dotenv").config({ path: "./.env_example" });
 
 app.use(express.json());
-
 app.use(cors());
-
 app.use(express.static("public"));
 
-app.listen(3000, console.log("Servidor encendido"));
+app.get("/", (req, res) => {
+  try {
+    res.sendFile();
+  } catch (error) {
+    res.json({ message: "No se encuentra el recurso" });
+  }
+});
+
+
+app.delete("/posts/:id", async (req, res) => {
+  try {
+    const { id } = req.params;
+    await deletePost(id);
+    res.json({ message: "Eliminado el Post" });
+  } catch (error) {
+    console.log(error);
+  }
+});
+
 
 app.get("/posts", async (req, res) => {
-  const posts = await getPosts();
-  res.json(posts);
+  try {
+    const getPosts = await getPost();
+    console.log(getPost);
+    res.json(getPosts);
+  } catch (error) {
+    console.log(error);
+  }
 });
+
 
 app.post("/posts", async (req, res) => {
   try {
-    const { titulo, url, descripcion } = req.body;
-    await addPost(titulo, url, descripcion);
-    res.send("Su post ha sido agregado con éxito");
+    const payload = req.body;
+    await addPost(payload);
+    res.send("Post publicado");
   } catch (error) {
-    res.status(500).send(error);
+    console.log(error);
   }
 });
 
 app.put("/posts/like/:id", async (req, res) => {
-  const { id } = req.params;
   try {
-    await addLike(id);
-    res.send("¡Like agregado con éxito!");
+    console.log("put");
+    const { id } = req.params;
+    const resp = await addLike(id);
+    console.log(resp);
+    res.send(resp);
   } catch (error) {
-    res.status(500).send("Error, su like no pudo ser agregado.");
+    console.log(error);
   }
 });
 
-app.delete("/posts/:id", async (req, res) => {
-  const { id } = req.params;
-  await deletePost(id);
-  res.send("Post eliminado con éxito");
-});
 
-app.get("/", (req, res) => {
-  res.sendFile(__dirname + "/index.html");
-});
+
+app.listen(3000, console.log("servidor activo"));

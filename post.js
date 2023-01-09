@@ -1,30 +1,42 @@
-const { Pool } = require("pg");
+require("dotenv").config();
 
-const pool = new Pool({
-  host: process.env.HOST,
-  user: "postgres",
-  password: "44182",
-  database: "like_me",
-  allowExitOnIdle: true,
-});
+const pool = require("./helpers/connect").getInstance();
 
-const addPost = async (titulo, url, descripcion) => {
-  const query = "INSERT INTO posts VALUES (DEFAULT, $1, $2, $3, 0)";
-  const values = [titulo, url, descripcion];
-  const result = await pool.query(query, values);
-  console.log("Tu post ha sido agregado");
-};
-
-const getPosts = async () => {
+const getPost = async () => {
   const { rows } = await pool.query("SELECT * FROM posts");
-  console.log(rows);
   return rows;
 };
 
+const duplicatePost = async (payload) => {
+  const SQLquery = {
+    text: "SELECT COUNT(*) as NUM FROM posts WHERE titulo=$1 AND img=$2 AND descripcion=$3",
+    values: [payload.titulo, payload.url, payload.descripcion],
+  };
+  const { rows } = await pool.query(SQLquery);
+  return rows;
+};
+const addPost = async (payload) => {
+  const resultDuplicate = await duplicatePost(payload);
+  if (resultDuplicate[0].num > 0) {
+    throw { error: "se duplican los campos" };
+  }
+  if (!payload.titulo || !payload.url || !payload.descripcion) {
+    throw { error: "Faltan campos requeridos" };
+  } else {
+    const consulta =
+      "INSERT INTO posts (titulo, img, descripcion, likes) VALUES ($1, $2, $3, $4)RETURNING * ";
+    const values = [payload.titulo, payload.url, payload.descripcion, 0];
+    const result = await pool.query(consulta, values);
+  }
+};
 const addLike = async (id) => {
-  const query = "UPDATE posts SET likes = likes + 1 WHERE id = $1";
-  const values = [id];
-  const result = await pool.query(query, values);
+  console.log(id);
+  const result = await pool.query(
+    "UPDATE posts SET likes = likes + 1 WHERE id = $1",
+    [id]
+  );
+  console.log(result);
+  return result.rows;
 };
 
 const deletePost = async (id) => {
@@ -33,4 +45,4 @@ const deletePost = async (id) => {
   const result = await pool.query(query, values);
 };
 
-module.exports = { addPost, getPosts, addLike, deletePost };
+module.exports = { getPost, addPost, deletePost, addLike };
